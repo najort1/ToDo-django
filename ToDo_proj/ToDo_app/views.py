@@ -5,7 +5,41 @@ from .models import Task
 import json
 
 
-# Create your views here.]
+# Funções auxiliares para reduzir duplicação de código
+def handle_json_error(error_message, status_code=400):
+    """Função auxiliar para retornar erros JSON padronizados"""
+    return JsonResponse({'success': False, 'error': error_message}, status=status_code)
+
+
+def handle_json_success(message, data=None):
+    """Função auxiliar para retornar sucessos JSON padronizados"""
+    response_data = {'success': True, 'message': message}
+    if data:
+        response_data.update(data)
+    return JsonResponse(response_data)
+
+
+def validate_task_data(data):
+    """Função auxiliar para validar dados de tarefa"""
+    title = data.get('title', '').strip()
+    if not title:
+        return None, 'Título é obrigatório'
+    return title, None
+
+
+def format_task_data(task):
+    """Função auxiliar para formatar dados de tarefa para JSON"""
+    return {
+        'id': task.id,
+        'title': task.title,
+        'description': task.description,
+        'status': task.status,
+        'created_at': task.created_at.strftime('%d/%m/%Y %H:%M'),
+        'updated_at': task.updated_at.strftime('%d/%m/%Y %H:%M')
+    }
+
+
+# Create your views here.
 def index(request):
     return render(request, 'index.html')
 
@@ -53,50 +87,34 @@ def create_task(request):
     """
     View para criar uma nova tarefa via AJAX
     """
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            
-            # Validar dados obrigatórios
-            title = data.get('title', '').strip()
-            if not title:
-                return JsonResponse({
-                    'success': False, 
-                    'error': 'Título é obrigatório'
-                }, status=400)
-            
-            # Criar nova tarefa
-            task = Task.objects.create(
-                user=request.user,
-                title=title,
-                description=data.get('description', ''),
-                status=data.get('status', Task.Status.PENDING)
-            )
-            
-            return JsonResponse({
-                'success': True,
-                'message': 'Tarefa criada com sucesso!',
-                'task': {
-                    'id': task.id,
-                    'title': task.title,
-                    'description': task.description,
-                    'status': task.status,
-                    'created_at': task.created_at.strftime('%d/%m/%Y %H:%M')
-                }
-            })
-            
-        except json.JSONDecodeError:
-            return JsonResponse({
-                'success': False, 
-                'error': 'Dados inválidos'
-            }, status=400)
-        except Exception as e:
-            return JsonResponse({
-                'success': False, 
-                'error': 'Erro interno do servidor'
-            }, status=500)
+    if request.method != 'POST':
+        return handle_json_error('Método não permitido', 405)
     
-    return JsonResponse({'success': False, 'error': 'Método não permitido'}, status=405)
+    try:
+        data = json.loads(request.body)
+        
+        # Validar dados obrigatórios
+        title, error = validate_task_data(data)
+        if error:
+            return handle_json_error(error)
+        
+        # Criar nova tarefa
+        task = Task.objects.create(
+            user=request.user,
+            title=title,
+            description=data.get('description', ''),
+            status=data.get('status', Task.Status.PENDING)
+        )
+        
+        return handle_json_success(
+            'Tarefa criada com sucesso!',
+            {'task': format_task_data(task)}
+        )
+        
+    except json.JSONDecodeError:
+        return handle_json_error('Dados inválidos')
+    except Exception:
+        return handle_json_error('Erro interno do servidor', 500)
 
 
 @login_required
@@ -104,54 +122,35 @@ def update_task(request, task_id):
     """
     View para atualizar uma tarefa existente via AJAX
     """
-    if request.method == 'POST':
-        try:
-            task = get_object_or_404(Task, id=task_id, user=request.user)
-            data = json.loads(request.body)
-            
-            # Validar título obrigatório
-            title = data.get('title', '').strip()
-            if not title:
-                return JsonResponse({
-                    'success': False, 
-                    'error': 'Título é obrigatório'
-                }, status=400)
-            
-            # Atualizar campos da tarefa
-            task.title = title
-            task.description = data.get('description', '')
-            task.status = data.get('status', task.status)
-            task.save()
-            
-            return JsonResponse({
-                'success': True,
-                'message': 'Tarefa atualizada com sucesso!',
-                'task': {
-                    'id': task.id,
-                    'title': task.title,
-                    'description': task.description,
-                    'status': task.status,
-                    'updated_at': task.updated_at.strftime('%d/%m/%Y %H:%M')
-                }
-            })
-            
-        except Task.DoesNotExist:
-            return JsonResponse({
-                'success': False, 
-                'error': 'Tarefa não encontrada'
-            }, status=404)
-        except json.JSONDecodeError:
-            return JsonResponse({
-                'success': False, 
-                'error': 'Dados inválidos'
-            }, status=400)
-        except Exception as e:
-            return JsonResponse({
-                'success': False, 
-                'error': 'Erro interno do servidor'
-            }, status=500)
+    if request.method != 'POST':
+        return handle_json_error('Método não permitido', 405)
     
-    return JsonResponse({'success': False, 'error': 'Método não permitido'}, status=405)
+    try:
+        task = get_object_or_404(Task, id=task_id, user=request.user)
+        data = json.loads(request.body)
+        
+        # Validar título obrigatório
+        title, error = validate_task_data(data)
+        if error:
+            return handle_json_error(error)
+        
+        # Atualizar campos da tarefa
+        task.title = title
+        task.description = data.get('description', '')
+        task.status = data.get('status', task.status)
+        task.save()
+        
+        return handle_json_success(
+            'Tarefa atualizada com sucesso!',
+            {'task': format_task_data(task)}
+        )
+        
+    except Task.DoesNotExist:
+        return handle_json_error('Tarefa não encontrada', 404)
+    except json.JSONDecodeError:
+        return handle_json_error('Dados inválidos')
+    except Exception:
+        return handle_json_error('Erro interno do servidor', 500)
 
 
 @login_required
@@ -159,29 +158,20 @@ def delete_task(request, task_id):
     """
     View para deletar uma tarefa via AJAX
     """
-    if request.method == 'DELETE':
-        try:
-            task = get_object_or_404(Task, id=task_id, user=request.user)
-            task_title = task.title
-            task.delete()
-            
-            return JsonResponse({
-                'success': True,
-                'message': f'Tarefa "{task_title}" removida com sucesso!'
-            })
-            
-        except Task.DoesNotExist:
-            return JsonResponse({
-                'success': False, 
-                'error': 'Tarefa não encontrada'
-            }, status=404)
-        except Exception as e:
-            return JsonResponse({
-                'success': False, 
-                'error': 'Erro interno do servidor'
-            }, status=500)
+    if request.method != 'DELETE':
+        return handle_json_error('Método não permitido', 405)
     
-    return JsonResponse({'success': False, 'error': 'Método não permitido'}, status=405)
+    try:
+        task = get_object_or_404(Task, id=task_id, user=request.user)
+        task_title = task.title
+        task.delete()
+        
+        return handle_json_success(f'Tarefa "{task_title}" removida com sucesso!')
+        
+    except Task.DoesNotExist:
+        return handle_json_error('Tarefa não encontrada', 404)
+    except Exception:
+        return handle_json_error('Erro interno do servidor', 500)
 
 
 @login_required
@@ -192,29 +182,12 @@ def get_task(request, task_id):
     """
     try:
         task = get_object_or_404(Task, id=task_id, user=request.user)
-        
-        return JsonResponse({
-            'success': True,
-            'task': {
-                'id': task.id,
-                'title': task.title,
-                'description': task.description,
-                'status': task.status,
-                'created_at': task.created_at.strftime('%d/%m/%Y %H:%M'),
-                'updated_at': task.updated_at.strftime('%d/%m/%Y %H:%M')
-            }
-        })
+        return handle_json_success('', {'task': format_task_data(task)})
         
     except Task.DoesNotExist:
-        return JsonResponse({
-            'success': False, 
-            'error': 'Tarefa não encontrada'
-        }, status=404)
-    except Exception as e:
-        return JsonResponse({
-            'success': False, 
-            'error': 'Erro interno do servidor'
-        }, status=500)
+        return handle_json_error('Tarefa não encontrada', 404)
+    except Exception:
+        return handle_json_error('Erro interno do servidor', 500)
 
 
 @login_required
@@ -222,29 +195,19 @@ def complete_task(request, task_id):
     """
     View para marcar uma tarefa como concluída via AJAX
     """
-    if request.method == 'POST':
-        try:
-            task = get_object_or_404(Task, id=task_id, user=request.user)
-            
-            # Marcar como concluída
-            task.status = Task.Status.COMPLETED
-            task.completed = True
-            task.save()
-            
-            return JsonResponse({
-                'success': True,
-                'message': f'Tarefa "{task.title}" marcada como concluída!'
-            })
-            
-        except Task.DoesNotExist:
-            return JsonResponse({
-                'success': False, 
-                'error': 'Tarefa não encontrada'
-            }, status=404)
-        except Exception as e:
-            return JsonResponse({
-                'success': False, 
-                'error': 'Erro interno do servidor'
-            }, status=500)
+    if request.method != 'POST':
+        return handle_json_error('Método não permitido', 405)
     
-    return JsonResponse({'success': False, 'error': 'Método não permitido'}, status=405)
+    try:
+        task = get_object_or_404(Task, id=task_id, user=request.user)
+        
+        # Marcar como concluída (removido campo completed redundante)
+        task.status = Task.Status.COMPLETED
+        task.save()
+        
+        return handle_json_success(f'Tarefa "{task.title}" marcada como concluída!')
+        
+    except Task.DoesNotExist:
+        return handle_json_error('Tarefa não encontrada', 404)
+    except Exception:
+        return handle_json_error('Erro interno do servidor', 500)

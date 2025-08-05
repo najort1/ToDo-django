@@ -196,53 +196,7 @@
         text-decoration: underline;
     }
 
-    .error-messages {
-        background-color: #fee;
-        border: 1px solid #fcc;
-        border-radius: 8px;
-        padding: 12px;
-        margin-bottom: 20px;
-    }
 
-    .error-messages ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    .error-messages li {
-        color: var(--accent-color);
-        font-size: 14px;
-        margin-bottom: 5px;
-    }
-
-    .error-messages li:last-child {
-        margin-bottom: 0;
-    }
-
-    .success-messages {
-        background-color: #efe;
-        border: 1px solid #cfc;
-        border-radius: 8px;
-        padding: 12px;
-        margin-bottom: 20px;
-    }
-
-    .success-messages ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    .success-messages li {
-        color: #27ae60;
-        font-size: 14px;
-        margin-bottom: 5px;
-    }
-
-    .success-messages li:last-child {
-        margin-bottom: 0;
-    }
 
     @media (max-width: 768px) {
         .auth-card {
@@ -270,19 +224,7 @@
             <p>Preencha os dados para criar sua conta</p>
         </div>
 
-        {% if messages %}
-            {% for message in messages %}
-                {% if message.tags == 'error' %}
-                    <div class="error-messages">
-                        <ul><li>{{ message }}</li></ul>
-                    </div>
-                {% elif message.tags == 'success' %}
-                    <div class="success-messages">
-                        <ul><li>{{ message }}</li></ul>
-                    </div>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
+
 
         <form method="post" id="registerForm">
             {% csrf_token %}
