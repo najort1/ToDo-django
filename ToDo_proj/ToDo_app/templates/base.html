@@ -96,11 +96,14 @@
             padding: 8px 12px;
             border-radius: 6px;
             transition: all 0.3s ease;
+            text-decoration: none;
         }
 
         .action-item:hover {
             background-color: rgba(255, 255, 255, 0.1);
             transform: translateY(-1px);
+            color: var(--text-white);
+            text-decoration: none;
         }
 
         .action-item i {
@@ -110,6 +113,52 @@
         .action-item p {
             font-weight: 500;
             font-size: 14px;
+            margin: 0;
+        }
+
+        .messages {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1001;
+            max-width: 400px;
+        }
+
+        .message {
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-medium);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .message.info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         main {
@@ -130,32 +179,72 @@
         <div class="actions">
             <div class="action-item">
                 <i class="fa-solid fa-user"></i>
-                <p>Welcome, {{ user.username }}</p>
+                <p>Bem-vindo, {{ user.first_name|default:user.username }}</p>
             </div>
-            <div class="action-item">
+            <a href="{% url 'auth:logout' %}" class="action-item">
                 <i class="fa-solid fa-right-from-bracket"></i>
                 <p>Sair</p>
-            </div>
+            </a>
         </div>
         {%else%}
         <div class="actions">
-            <div class="action-item">
+            <a href="{% url 'auth:login' %}" class="action-item">
                 <i class="fa-solid fa-door-open"></i>
                 <p>Login</p>
-            </div>
-            <div class="action-item">
+            </a>
+            <a href="{% url 'auth:register' %}" class="action-item">
                 <i class="fa-solid fa-user-plus"></i>
                 <p>Cadastro</p>
-            </div>
+            </a>
         </div>
         {%endif%}
     </header>
 
+    {% comment %} Notificações visuais para o usuario {% endcomment %}
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
     <main>
         {% block content %}{% endblock content %}
     </main>
 
-    
+    <script>
+        // Auto-remove messages depois de 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const messages = document.querySelectorAll('.message');
+            messages.forEach(function(message) {
+                setTimeout(function() {
+                    message.style.animation = 'slideOut 0.3s ease-out forwards';
+                    setTimeout(function() {
+                        message.remove();
+                    }, 500);
+                }, 5000);
+            });
+        });
+
+        // Add slideOut animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+    {% block extra_js %}{% endblock extra_js %}
 </body>
 </html>

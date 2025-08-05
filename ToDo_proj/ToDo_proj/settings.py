@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'ToDo_app',
+    'ToDo_auth_app'
 ]
 
 MIDDLEWARE = [
