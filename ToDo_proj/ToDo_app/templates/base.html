@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDo {% block title %}{% endblock title %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Variáveis de cores para padronização */
+        :root {
+            /* Cores principais */
+            --primary-color: #2c3e50;        /* Azul escuro elegante */
+            --primary-light: #34495e;        /* Azul escuro mais claro */
+            --secondary-color: #3498db;      /* Azul moderno */
+            --accent-color: #e74c3c;         /* Vermelho para destaques */
+            
+            /* Cores neutras */
+            --background-primary: #ffffff;    /* Branco puro */
+            --background-secondary: #f8f9fa;  /* Cinza muito claro */
+            --background-tertiary: #ecf0f1;   /* Cinza claro */
+            --background-dark: #2c3e50;       /* Fundo escuro */
+            
+            /* Cores de texto */
+            --text-primary: #2c3e50;         /* Texto principal */
+            --text-secondary: #7f8c8d;       /* Texto secundário */
+            --text-light: #bdc3c7;           /* Texto claro */
+            --text-white: #ffffff;           /* Texto branco */
+            
+            /* Cores de borda e sombra */
+            --border-color: #dee2e6;         /* Borda sutil */
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-medium: rgba(0, 0, 0, 0.12);
+            --shadow-strong: rgba(0, 0, 0, 0.16);
+            
+            /* Gradientes */
+            --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            --gradient-secondary: linear-gradient(135deg, var(--secondary-color) 0%, #5dade2 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        header {
+            top: 0;
+            z-index: 1000;
+            background: var(--gradient-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            position: sticky;
+            box-shadow: 0 2px 10px var(--shadow-medium);
+        }
+
+        .title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-white);
+        }
+
+        .title i {
+            font-size: 24px;
+            color: var(--text-white);
+        }
+
+        .title h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-white);
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .action-item {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-white);
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .action-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .action-item i {
+            font-size: 16px;
+        }
+
+        .action-item p {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        main {
+            min-height: calc(100vh - 70px);
+        }
+    </style>
+    {% block extra_css %}{% endblock extra_css %}
+</head>
+
+<body>
+    
+    <header>
+        <div class="title">
+            <i class="fa-solid fa-book"></i>
+            <h1>ToDo List</h1>
+        </div>
+        {%if user.is_authenticated %}
+        <div class="actions">
+            <div class="action-item">
+                <i class="fa-solid fa-user"></i>
+                <p>Welcome, {{ user.username }}</p>
+            </div>
+            <div class="action-item">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <p>Sair</p>
+            </div>
+        </div>
+        {%else%}
+        <div class="actions">
+            <div class="action-item">
+                <i class="fa-solid fa-door-open"></i>
+                <p>Login</p>
+            </div>
+            <div class="action-item">
+                <i class="fa-solid fa-user-plus"></i>
+                <p>Cadastro</p>
+            </div>
+        </div>
+        {%endif%}
+    </header>
+
+
+    <main>
+        {% block content %}{% endblock content %}
+    </main>
+
+    
+</body>
+</html>
