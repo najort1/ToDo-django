@@ -27,6 +27,10 @@
                 <i class="fa-solid fa-right-from-bracket"></i>
                 <p>Sair</p>
             </a>
+            <a href="#" class="action-item" onclick="confirm_delete_account()">
+                <i class="fa-solid fa-user-minus"></i>
+                <p>Deletar</p>
+            </a>
         </div>
         {%else%}
         <div class="actions">
@@ -54,6 +58,14 @@
                 showToast('{{ message|escapejs }}', '{{ message.tags }}');
             {% endfor %}
         {% endif %}
+
+        function confirm_delete_account() {
+            if (confirm('Tem certeza que deseja deletar sua conta? Isso irá excluir todos os dados associados à sua conta.')) {
+                window.location.href = '{% url "auth:delete" %}';
+            }
+        }
+
+
     </script>
 
     {% block extra_js %}{% endblock extra_js %}

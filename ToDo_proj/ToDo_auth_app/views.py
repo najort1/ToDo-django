@@ -54,3 +54,13 @@ def logout_view(request):
         messages.success(request, f'Até logo, {user_name}! Você foi desconectado com sucesso.')
     
     return redirect('tasks:index')
+
+def delete_account(request):
+    if request.user.is_authenticated:
+        user = request.user
+        user.delete()
+        messages.success(request, 'Sua conta foi deletada com sucesso.')
+        return redirect('tasks:index')
+    else:
+        messages.error(request, 'Você precisa estar logado para deletar sua conta.')
+        return redirect('auth:login')
