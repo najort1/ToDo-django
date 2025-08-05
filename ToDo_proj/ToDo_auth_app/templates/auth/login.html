@@ -1,138 +1,10 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Login{% endblock title %}
 
 {% block extra_css %}
-<style>
-    .auth-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: calc(100vh - 70px);
-        padding: 20px;
-        background: linear-gradient(135deg, var(--background-secondary) 0%, var(--background-tertiary) 100%);
-    }
-
-    .auth-card {
-        background: var(--background-primary);
-        border-radius: 16px;
-        box-shadow: 0 10px 30px var(--shadow-medium);
-        padding: 40px;
-        width: 100%;
-        max-width: 450px;
-        border: 1px solid var(--border-color);
-    }
-
-    .auth-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
-    .auth-header h2 {
-        color: var(--primary-color);
-        font-size: 28px;
-        font-weight: 600;
-        margin-bottom: 8px;
-    }
-
-    .auth-header p {
-        color: var(--text-secondary);
-        font-size: 16px;
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    .form-label {
-        display: block;
-        color: var(--text-primary);
-        font-weight: 500;
-        margin-bottom: 8px;
-        font-size: 14px;
-    }
-
-    .form-input {
-        width: 100%;
-        padding: 14px 16px;
-        border: 2px solid var(--border-color);
-        border-radius: 8px;
-        font-size: 16px;
-        transition: all 0.3s ease;
-        background-color: var(--background-primary);
-        color: var(--text-primary);
-    }
-
-    .form-input:focus {
-        outline: none;
-        border-color: var(--secondary-color);
-        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-    }
-
-    .form-input::placeholder {
-        color: var(--text-light);
-    }
-
-    .btn-primary {
-        width: 100%;
-        padding: 14px;
-        background: var(--gradient-primary);
-        color: var(--text-white);
-        border: none;
-        border-radius: 8px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin-top: 10px;
-    }
-
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px var(--shadow-medium);
-    }
-
-    .btn-primary:active {
-        transform: translateY(0);
-    }
-
-    .auth-footer {
-        text-align: center;
-        margin-top: 25px;
-        padding-top: 25px;
-        border-top: 1px solid var(--border-color);
-    }
-
-    .auth-footer p {
-        color: var(--text-secondary);
-        margin-bottom: 10px;
-    }
-
-    .auth-link {
-        color: var(--secondary-color);
-        text-decoration: none;
-        font-weight: 500;
-        transition: color 0.3s ease;
-    }
-
-    .auth-link:hover {
-        color: var(--primary-color);
-        text-decoration: underline;
-    }
-
-
-
-    @media (max-width: 768px) {
-        .auth-card {
-            padding: 30px 20px;
-            margin: 10px;
-        }
-        
-        .auth-header h2 {
-            font-size: 24px;
-        }
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
 {% endblock extra_css %}
 
 {% block content %}
@@ -148,37 +20,8 @@
         <form method="post">
             {% csrf_token %}
             
-            <div class="form-group">
-                <label for="{{ form.username.id_for_label }}" class="form-label">
-                    <i class="fa-solid fa-envelope"></i> {{ form.username.label }}
-                </label>
-                {{ form.username }}
-                {% if form.username.errors %}
-                    <div class="error-messages">
-                        <ul>
-                            {% for error in form.username.errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                {% endif %}
-            </div>
-
-            <div class="form-group">
-                <label for="{{ form.password.id_for_label }}" class="form-label">
-                    <i class="fa-solid fa-lock"></i> {{ form.password.label }}
-                </label>
-                {{ form.password }}
-                {% if form.password.errors %}
-                    <div class="error-messages">
-                        <ul>
-                            {% for error in form.password.errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                {% endif %}
-            </div>
+            {% include 'includes/form_field.html' with field=form.username icon="fa-solid fa-envelope" %}
+            {% include 'includes/form_field.html' with field=form.password icon="fa-solid fa-lock" %}
 
             {% if form.non_field_errors %}
                 <div class="error-messages">
