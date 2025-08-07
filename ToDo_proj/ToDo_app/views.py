@@ -3,6 +3,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from .models import Task
 import json
+from .choices import Status
+
 
 
 # Funções auxiliares para reduzir duplicação de código
@@ -67,15 +69,15 @@ def dashboard(request):
     # Contar tarefas por status para estatísticas
     stats = {
         'total': Task.objects.filter(user=request.user).count(),
-        'pending': Task.objects.filter(user=request.user, status=Task.Status.PENDING).count(),
-        'in_progress': Task.objects.filter(user=request.user, status=Task.Status.IN_PROGRESS).count(),
-        'completed': Task.objects.filter(user=request.user, status=Task.Status.COMPLETED).count(),
+        'pending': Task.objects.filter(user=request.user, status=Status.PENDING).count(),
+        'in_progress': Task.objects.filter(user=request.user, status=Status.IN_PROGRESS).count(),
+        'completed': Task.objects.filter(user=request.user, status=Status.COMPLETED).count(),
     }
     
     context = {
         'tasks': tasks,
         'stats': stats,
-        'status_choices': Task.Status.choices,
+        'status_choices': Status.choices,
         'current_status_filter': status_filter,
     }
     
@@ -200,8 +202,6 @@ def complete_task(request, task_id):
     
     try:
         task = get_object_or_404(Task, id=task_id, user=request.user)
-        
-        # Marcar como concluída (removido campo completed redundante)
         task.status = Task.Status.COMPLETED
         task.save()
         

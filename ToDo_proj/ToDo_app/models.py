@@ -1,14 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
+from .choices import Status
+
+
 
 
 # Create your models here.
 class Task(models.Model):
-    
-    class Status(models.TextChoices):
-        PENDING = 'PENDENTE'
-        IN_PROGRESS = 'EM ANDAMENTO'
-        COMPLETED = 'COMPLETADO'
     
     
     user = models.ForeignKey(
