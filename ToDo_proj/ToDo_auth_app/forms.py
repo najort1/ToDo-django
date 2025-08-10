@@ -1,10 +1,16 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth.models import User
-from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model, authenticate
 from django.core.exceptions import ValidationError
 from email_validator import validate_email, EmailNotValidError
+from .services import testa_cpf
+from ToDo_user_app.models import Address
+from ToDo_user_app import choices as ch
+
 import re
+import datetime
+
+User = get_user_model()
 
 
 
@@ -59,9 +65,14 @@ class CustomUserCreationForm(UserCreationForm):
         label='Confirmar Senha'
     )
 
+
+
+    
+
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'password1', 'password2')
+        fields = ('first_name', 'last_name', 'email', 'password1', 'password2', 'birthdate', 'gender', 'cpf')
+
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -117,6 +128,34 @@ class CustomUserCreationForm(UserCreationForm):
             raise ValidationError('A senha deve conter pelo menos um caractere especial.')
         
         return password1
+    
+    def clean_cpf(self):
+        cpf = self.cleaned_data.get('cpf')
+        if cpf:  # Só valida se foi fornecido
+            if not cpf.isdigit():
+                raise ValidationError('O CPF deve conter apenas números.')
+            if len(cpf) != 11:
+                raise ValidationError('O CPF deve conter 11 dígitos.')
+            if not testa_cpf(cpf):
+                raise ValidationError('CPF inválido.')
+            if User.objects.filter(cpf=cpf).exists():
+                raise ValidationError('Este CPF já está em uso.')
+        return cpf
+    
+    def clean_birthdate(self):
+        birthdate = self.cleaned_data.get('birthdate')
+        if birthdate:
+            if birthdate > datetime.date.today():
+                raise ValidationError('A data de nascimento não pode ser futura.')
+        return birthdate
+    
+    def clean_gender(self):
+        gender = self.cleaned_data.get('gender')
+        if gender and gender not in [choice[0] for choice in ch.Gender.choices]:
+            raise ValidationError('Gênero inválido.')
+        return gender
+
+
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -124,10 +163,165 @@ class CustomUserCreationForm(UserCreationForm):
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
-        
+            
         if commit:
             user.save()
         return user
+
+
+# Formulário para a segunda etapa do cadastro
+class SecondStepRegistrationForm(forms.Form):
+    # Campos obrigatórios da segunda etapa
+    birthdate = forms.DateField(
+        required=True,
+        widget=forms.DateInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Digite sua data de nascimento',
+            'id': 'birthdate',
+            'type': 'date'
+        }),
+        label='Data de Nascimento'
+    )
+    
+    gender = forms.ChoiceField(
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'form-input',
+            'id': 'gender'
+        }),
+        label='Gênero',
+        choices=[('', 'Selecione seu gênero')] + list(ch.Gender.choices)
+    )
+    
+    cpf = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Digite seu CPF (apenas números)',
+            'id': 'cpf',
+        }),
+        label='CPF'
+    )
+    
+    phone = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Digite seu telefone',
+            'id': 'phone'
+        }),
+        label='Telefone'
+    )
+    
+    # Campos de endereço
+    zipcode = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Digite o CEP',
+            'id': 'zipcode',
+            'maxlength': '9'
+        }),
+        label='CEP'
+    )
+    
+    street = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Digite o nome da rua',
+            'id': 'street'
+        }),
+        label='Rua'
+    )
+    
+    number = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Digite o número',
+            'id': 'number'
+        }),
+        label='Número'
+    )
+    
+    complement = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Complemento (opcional)',
+            'id': 'complement'
+        }),
+        label='Complemento'
+    )
+    
+    neighborhood = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Digite o bairro',
+            'id': 'neighborhood'
+        }),
+        label='Bairro'
+    )
+    
+    city = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Digite a cidade',
+            'id': 'city'
+        }),
+        label='Cidade'
+    )
+    
+    state = forms.ChoiceField(
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'form-input',
+            'id': 'state'
+        }),
+        label='Estado',
+        choices=[('', 'Selecione o estado')] + list(ch.States.choices)
+    )
+    
+    def clean_cpf(self):
+        cpf = self.cleaned_data.get('cpf')
+        real_cpf_clean = re.sub(r'\D', '', cpf)
+
+        if not real_cpf_clean.isdigit():
+            raise ValidationError('O CPF deve conter apenas números.')
+        if len(real_cpf_clean) != 11:
+            raise ValidationError('O CPF deve conter 11 dígitos.')
+        if not testa_cpf(real_cpf_clean):
+            raise ValidationError('CPF inválido.')
+        if User.objects.filter(cpf=real_cpf_clean).exists():
+            raise ValidationError('Este CPF já está em uso.')
+        return real_cpf_clean
+
+    
+    def clean_birthdate(self):
+        birthdate = self.cleaned_data.get('birthdate')
+        if birthdate > datetime.date.today():
+            raise ValidationError('A data de nascimento não pode ser futura.')
+        return birthdate
+    
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone')
+        real_phone_clean = re.sub(r'\D', '', phone)
+        if not real_phone_clean.isdigit():
+            raise ValidationError('O telefone deve conter apenas números.')
+        if len(real_phone_clean) < 10 or len(real_phone_clean) > 11:
+            raise ValidationError('Telefone deve ter 10 ou 11 dígitos.')
+        return real_phone_clean
+    
+    def clean_zipcode(self):
+        zipcode = self.cleaned_data.get('zipcode')
+        # Remove caracteres não numéricos
+        zipcode_digits = re.sub(r'\D', '', zipcode)
+        if len(zipcode_digits) != 8:
+            raise ValidationError('CEP deve ter 8 dígitos.')
+        return zipcode_digits
 
 
 class CustomAuthenticationForm(AuthenticationForm):

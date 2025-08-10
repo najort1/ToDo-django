@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Completar Cadastro - Etapa 2{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card register">
+        <div class="auth-header">
+            <h2>Complete seu Cadastro</h2>
+            <p>Preencha os dados restantes para finalizar</p>
+        </div>
+
+        <form method="post" class="auth-form" id="step2Form" >
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <h3><i class="fa-solid fa-user"></i> Dados Pessoais</h3>
+                
+                <div class="form-row">
+                    {% include 'includes/form_field.html' with field=form.birthdate icon="fa-solid fa-birthday-cake" %}
+                    {% include 'includes/form_field.html' with field=form.gender icon="fa-solid fa-venus-mars" %}
+                </div>
+                
+                <div class="form-row">
+                    {% include 'includes/form_field.html' with field=form.cpf icon="fa-solid fa-id-card" %}
+                    {% include 'includes/form_field.html' with field=form.phone icon="fa-solid fa-phone" %}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3><i class="fa-solid fa-map-marker-alt"></i> Endereço</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        {% include 'includes/form_field.html' with field=form.zipcode icon="fa-solid fa-map-pin" %}
+                        <div id="cep-loading" style="display: none; color: #007bff; font-size: 12px; margin-top: 5px;">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Buscando endereço...
+                        </div>
+                    </div>
+                    
+                    {% include 'includes/form_field.html' with field=form.street icon="fa-solid fa-road" %}
+                    {% include 'includes/form_field.html' with field=form.number icon="fa-solid fa-hashtag" %}
+                    {% include 'includes/form_field.html' with field=form.complement icon="fa-solid fa-building" %}
+                    {% include 'includes/form_field.html' with field=form.neighborhood icon="fa-solid fa-home" %}
+                    {% include 'includes/form_field.html' with field=form.city icon="fa-solid fa-city" %}
+                    {% include 'includes/form_field.html' with field=form.state icon="fa-solid fa-flag" %}
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" id="submitBtn">
+                <i class="fa-solid fa-check"></i> Finalizar Cadastro
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Já tem uma conta completa?</p>
+            <a href="{% url 'auth:login' %}" class="auth-link">
+                <i class="fa-solid fa-door-open"></i> Fazer login
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Máscaras de input
+    const cpfInput = document.getElementById('cpf');
+    const phoneInput = document.getElementById('phone');
+    const zipInput = document.getElementById('zipcode');
+
+    //console.log("Cpf input existe: ", cpfInput)
+    //console.log("Phone input existe: ", phoneInput)
+    //console.log("Zip input existe: ", zipInput)
+
+
+    // Máscara para CPF
+    if (cpfInput) {
+        cpfInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            e.target.value = value;
+        });
+    }
+
+    // Máscara para telefone
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 10) {
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{4})(\d)/, '$1-$2');
+            } else {
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            }
+            e.target.value = value;
+        });
+    }
+
+    // Máscara e busca automática para CEP
+    if (zipInput) {
+        console.log("CEP INPUT")
+        zipInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            e.target.value = value;
+            
+            // Se o CEP tem 8 dígitos (sem máscara), busca na API
+            const cleanCep = value.replace(/\D/g, '');
+            if (cleanCep.length === 8) {
+                //console.log("CHAMANDO CONSIULTA CPF ")
+                searchCep(cleanCep);
+            }
+        });
+    }
+
+    // Função para buscar CEP na API ViaCEP
+    function searchCep(cep) {
+        const loadingDiv = document.getElementById('cep-loading');
+        const streetInput = document.getElementById('street');
+        const neighborhoodInput = document.getElementById('neighborhood');
+        const cityInput = document.getElementById('city');
+        const stateSelect = document.getElementById('state');
+
+        // Mostra loading
+        if (loadingDiv) loadingDiv.style.display = 'block';
+
+        fetch(`https://viacep.com.br/ws/${cep}/json/`)
+            .then(response => response.json())
+            .then(data => {
+                if (loadingDiv) loadingDiv.style.display = 'none';
+
+                if (data.erro) {
+                    showToast('CEP não encontrado!', 'error');
+                    return;
+                }
+
+                // Preenche os campos automaticamente
+                if (streetInput) streetInput.value = data.logradouro || '';
+                if (neighborhoodInput) neighborhoodInput.value = data.bairro || '';
+                if (cityInput) cityInput.value = data.localidade || '';
+
+                if (stateSelect) {
+                    // Busca a opção correspondente ao UF retornado
+                    const options = stateSelect.querySelectorAll('option');
+                    for (let option of options) {
+                        if (option.value === data.uf) {
+                            stateSelect.value = data.uf;
+                            break;
+                        }
+                    }
+                    stateSelect.removeAttribute('disabled');
+                }
+            })
+            .catch(error => {
+                if (loadingDiv) loadingDiv.style.display = 'none';
+                console.error('Erro ao buscar CEP:', error);
+                showToast('Erro ao buscar CEP. Tente novamente.', 'error');
+            });
+    }
+
+});
+</script>
+{% endblock extra_js %}

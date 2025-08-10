@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Cadastro{% endblock title %}
+{% block title %}Cadastro - Etapa 1{% endblock title %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/auth.css' %}">
@@ -19,6 +19,19 @@
 
         <form method="post" id="registerForm">
             {% csrf_token %}
+            
+            <!-- Exibir todos os erros do formulário -->
+            {% if form.errors %}
+                <div class="error-messages">
+                    <ul>
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ field }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
             
             <div class="form-row">
                 {% include 'includes/form_field.html' with field=form.first_name icon="fa-solid fa-user" %}
@@ -183,17 +196,6 @@
         }
     });
 
-    // Form validation
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-        const password1 = document.getElementById('password1').value;
-        const password2 = document.getElementById('password2').value;
-        
-        if (password1 !== password2) {
-            e.preventDefault();
-            alert('As senhas não coincidem!');
-            return false;
-        }
-    });
 });
 
 </script>
