@@ -1,7 +1,7 @@
 /**
  * Função para exibir toast de feedback
  */
-function showToast(message, type = 'success') {
+function showToast(message, type = 'success',time = 3000) {
     // Criar elemento de toast
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
@@ -21,8 +21,8 @@ function showToast(message, type = 'success') {
     // Remover após 3 segundos
     setTimeout(() => {
         toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+        setTimeout(() => toast.remove(), time);
+    }, time);
 }
 
 /**
@@ -39,3 +39,18 @@ function initializeDjangoMessages() {
 document.addEventListener('DOMContentLoaded', function() {
     initializeDjangoMessages();
 });
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
