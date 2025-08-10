@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Admin{% endblock title %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin-dashboard.css' %}">
+<link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-grid.css">
+<link rel="stylesheet" href="https://unpkg.com/ag-grid-community/styles/ag-theme-alpine.css">
+{% endblock extra_css %}
+
+
+{% block content %}
+<div class="admin-container">
+    <!-- Header do Dashboard -->
+    <div class="admin-header">
+        <div class="admin-title">
+            <h2><i class="fas fa-chart-line"></i> Dashboard Administrativo</h2>
+            <p>Painel de controle para gerenciamento de usuários</p>
+        </div>
+    </div>
+
+    <!-- Cards de Estatísticas -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="total-users">0</h3>
+                <p>Total de Usuários</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="active-users">0</h3>
+                <p>Usuários Ativos</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="admin-users">0</h3>
+                <p>Administradores</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="new-users">0</h3>
+                <p>Novos Hoje</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="charts-grid">
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-pie"></i> Distribuição por Gênero</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="genderChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-bar"></i> Faixas Etárias</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="ageChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gerenciamento de Usuários -->
+    <div class="users-section">
+        <div class="section-header">
+            <h3><i class="fas fa-users-cog"></i> Gerenciamento de Usuários</h3>
+        </div>
+        
+        <div class="grid-container">
+            <div id="usersGrid" class="ag-theme-alpine"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal para Visualizar Dados Completos do Usuário -->
+<div id="userDetailsModal" class="modal">
+    <div class="modal-content large">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-circle"></i> Detalhes do Usuário</h3>
+            <span class="close" onclick="closeUserDetailsModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="user-details-container">
+                <!-- Dados Pessoais -->
+                <div class="details-section">
+                    <h4><i class="fas fa-user"></i> Dados Pessoais</h4>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <label>Nome Completo:</label>
+                            <span id="detailFullName">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Email:</label>
+                            <span id="detailEmail">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>CPF:</label>
+                            <span id="detailCpf">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Telefone:</label>
+                            <span id="detailPhone">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Data de Nascimento:</label>
+                            <span id="detailBirthdate">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Idade:</label>
+                            <span id="detailAge">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Gênero:</label>
+                            <span id="detailGender">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Tipo de Usuário:</label>
+                            <span id="detailUserType">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Status:</label>
+                            <span id="detailStatus">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Data de Cadastro:</label>
+                            <span id="detailDateJoined">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Endereço -->
+                <div class="details-section">
+                    <h4><i class="fas fa-map-marker-alt"></i> Endereço</h4>
+                    <div class="details-grid">
+                        <div class="detail-item full-width">
+                            <label>Endereço Completo:</label>
+                            <span id="detailAddress">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>CEP:</label>
+                            <span id="detailZipcode">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Cidade/Estado:</label>
+                            <span id="detailCityState">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estatísticas de Tasks -->
+                <div class="details-section">
+                    <h4><i class="fas fa-tasks"></i> Estatísticas de Tarefas</h4>
+                    <div class="task-stats-grid">
+                        <div class="task-stat-card">
+                            <div class="task-stat-icon pending">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="task-stat-content">
+                                <h5 id="detailTasksPending">0</h5>
+                                <p>Pendentes</p>
+                            </div>
+                        </div>
+                        <div class="task-stat-card">
+                            <div class="task-stat-icon progress">
+                                <i class="fas fa-spinner"></i>
+                            </div>
+                            <div class="task-stat-content">
+                                <h5 id="detailTasksInProgress">0</h5>
+                                <p>Em Progresso</p>
+                            </div>
+                        </div>
+                        <div class="task-stat-card">
+                            <div class="task-stat-icon completed">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="task-stat-content">
+                                <h5 id="detailTasksCompleted">0</h5>
+                                <p>Concluídas</p>
+                            </div>
+                        </div>
+                        <div class="task-stat-card">
+                            <div class="task-stat-icon total">
+                                <i class="fas fa-list"></i>
+                            </div>
+                            <div class="task-stat-content">
+                                <h5 id="detailTasksTotal">0</h5>
+                                <p>Total</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeUserDetailsModal()">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação -->
+<div id="confirmModal" class="modal">
+    <div class="modal-content small">
+        <div class="modal-header">
+            <h3>Confirmar Ação</h3>
+            <span class="close" onclick="closeConfirmModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p id="confirmMessage">Tem certeza que deseja realizar esta ação?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="confirmButton">Confirmar</button>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block extra_js %}
+<script src="{% static 'js/admin-dashboard.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ag-grid-community@34.1.1/dist/ag-grid-community.min.js"></script>
+{% endblock extra_js %}
+
+

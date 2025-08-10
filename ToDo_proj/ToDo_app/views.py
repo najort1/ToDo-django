@@ -3,7 +3,14 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from .models import Task
 import json
-from .choices import Status
+from .choices import Status, Months
+from django.conf import settings
+from django.core.paginator import Paginator
+from django.contrib.auth import get_user_model
+from django.db.models import Count
+from datetime import datetime, date
+from django.contrib.admin.views.decorators import staff_member_required
+
 
 
 
@@ -51,7 +58,7 @@ def index(request):
 def dashboard(request):
     """
     View principal que exibe a lista de tarefas do usuário
-    Inclui funcionalidade de filtro simples por status
+    Inclui funcionalidade de filtro por status com paginação
     """
     # Obter parâmetro de filtro da URL
     status_filter = request.GET.get('status', '')
@@ -59,12 +66,17 @@ def dashboard(request):
     # Buscar tarefas do usuário logado
     tasks = Task.objects.filter(user=request.user)
     
-    # Aplicar filtro se fornecido
+    # Aplicar filtro se fornecido (antes da paginação)
     if status_filter:
         tasks = tasks.filter(status=status_filter)
     
     # Ordenar por data de criação (mais recentes primeiro)
     tasks = tasks.order_by('-created_at')
+    
+    # Aplicar paginação após filtro
+    paginator = Paginator(tasks, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     
     # Contar tarefas por status para estatísticas
     stats = {
@@ -75,10 +87,10 @@ def dashboard(request):
     }
     
     context = {
-        'tasks': tasks,
         'stats': stats,
         'status_choices': Status.choices,
         'current_status_filter': status_filter,
+        'page_obj': page_obj,
     }
     
     return render(request, 'tasks/dashboard.html', context)
@@ -105,7 +117,7 @@ def create_task(request):
             user=request.user,
             title=title,
             description=data.get('description', ''),
-            status=data.get('status', Task.Status.PENDING)
+            status=data.get('status', Status.PENDING)
         )
         
         return handle_json_success(
@@ -202,7 +214,7 @@ def complete_task(request, task_id):
     
     try:
         task = get_object_or_404(Task, id=task_id, user=request.user)
-        task.status = Task.Status.COMPLETED
+        task.status = Status.COMPLETED
         task.save()
         
         return handle_json_success(f'Tarefa "{task.title}" marcada como concluída!')
@@ -211,3 +223,27 @@ def complete_task(request, task_id):
         return handle_json_error('Tarefa não encontrada', 404)
     except Exception:
         return handle_json_error('Erro interno do servidor', 500)
+    
+
+@login_required
+def all_tasks_date(request):
+    """
+    View para obter todas as datas de todas as tarefas de um usuario e separar a quantidade por mes para fins de grafico
+    """
+    try:
+        tasks = Task.objects.filter(user=request.user)
+        dates = tasks.values_list('created_at', flat=True)
+        
+        # Initialize counts dict with all months set to 0 (using month names as keys)
+        counts = {month[1]: 0 for month in Months.choices}
+        
+        # Count tasks for each month
+        for date in dates:
+            if date:
+                month = date.strftime('%m')
+                month_name = dict(Months.choices)[month]
+                counts[month_name] += 1
+            
+        return handle_json_success('', {'counts': counts})
+    except Exception as e:
+        return handle_json_error(f'Erro interno do servidor: {e}', 500)

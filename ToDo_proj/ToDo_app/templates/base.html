@@ -23,6 +23,15 @@
                 <i class="fa-solid fa-user"></i>
                 <p>Bem-vindo, {{ user.first_name|default:user.username }}</p>
             </div>
+            {% if user.is_staff or user.user_type == 'A' %}
+
+
+            <a href="{% url 'user_app:admin_dashboard' %}" class="action-item">
+
+                <i class="fa-solid fa-chart-line"></i>
+                <p>Admin</p>
+            </a>
+            {% endif %}
             <a href="{% url 'auth:logout' %}" class="action-item">
                 <i class="fa-solid fa-right-from-bracket"></i>
                 <p>Sair</p>
