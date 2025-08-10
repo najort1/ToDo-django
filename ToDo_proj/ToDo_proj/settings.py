@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'ToDo_app',
-    'ToDo_auth_app'
+    'ToDo_auth_app',
+    "ToDo_user_app"
 ]
 
 MIDDLEWARE = [
@@ -52,6 +53,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'ToDo_proj.urls'
+
+AUTH_USER_MODEL = 'ToDo_user_app.Usuario'
 
 TEMPLATES = [
     {
