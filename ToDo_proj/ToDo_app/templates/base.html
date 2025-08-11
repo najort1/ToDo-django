@@ -13,7 +13,7 @@
 <body>
     
     <header>
-        <div class="title">
+        <div class="title" onclick="window.location.href='{% url 'tasks:dashboard' %}'">
             <i class="fa-solid fa-book"></i>
             <h1>ToDo List</h1>
         </div>
@@ -24,8 +24,6 @@
                 <p>Bem-vindo, {{ user.first_name|default:user.username }}</p>
             </div>
             {% if user.is_staff or user.user_type == 'A' %}
-
-
             <a href="{% url 'user_app:admin_dashboard' %}" class="action-item">
 
                 <i class="fa-solid fa-chart-line"></i>

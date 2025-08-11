@@ -1,3 +1,4 @@
+/* Estilos específicos de autenticação */
 .auth-container {
     display: flex;
     justify-content: center;
@@ -38,53 +39,25 @@
     font-size: 16px;
 }
 
-.form-row {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-    flex: 1;
-}
-
-.form-label {
-    display: block;
-    color: var(--text-primary);
-    font-weight: 500;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.form-input {
-    width: 100%;
+/* Estilos específicos para formulários de auth */
+.auth-card .form-input {
     padding: 14px 16px;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
     font-size: 16px;
-    transition: all 0.3s ease;
-    background-color: var(--background-primary);
-    color: var(--text-primary);
 }
 
-.form-input:focus {
-    outline: none;
-    border-color: var(--secondary-color);
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+.auth-card .btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: var(--gradient-primary);
+    font-size: 16px;
+    margin-top: 10px;
 }
 
-.form-input::placeholder {
-    color: var(--text-light);
+.auth-card .btn-primary:hover {
+    box-shadow: 0 8px 25px var(--shadow-medium);
 }
 
+/* Validação de senha */
 .password-strength {
     margin-top: 10px;
     padding: 12px;
@@ -122,8 +95,6 @@
     background-color: #f1c40f;
 }
 
-
-
 .strength-strong .strength-fill {
     width: 100%;
     background-color: #27ae60;
@@ -149,53 +120,7 @@
     font-size: 10px;
 }
 
-.btn-primary {
-    width: 100%;
-    padding: 14px;
-    background: var(--gradient-primary);
-    color: var(--text-white);
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 10px;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px var(--shadow-medium);
-}
-
-.btn-primary:active {
-    transform: translateY(0);
-}
-
-.btn-primary:disabled {
-    background: var(--text-light);
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-.auth-footer {
-    text-align: center;
-    margin-top: 25px;
-    padding-top: 25px;
-    border-top: 1px solid var(--border-color);
-}
-
-.auth-footer p {
-    color: var(--text-secondary);
-    margin-bottom: 10px;
-}
-
-.auth-link {
-    color: var(--secondary-color);
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.3s ease;
+/* Seções do formulário */
 .form-section {
     margin-bottom: 30px;
     padding: 20px;
@@ -217,52 +142,32 @@
     margin-right: 8px;
 }
 
+/* Footer de autenticação */
+.auth-footer {
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 1px solid var(--border-color);
+}
+
+.auth-footer p {
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.auth-link {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
 .auth-link:hover {
     color: var(--primary-color);
+    text-decoration: underline;
 }
 
-.error-messages {
-    background-color: #fee;
-    border: 1px solid #fcc;
-    border-radius: 4px;
-    padding: 10px;
-    margin-bottom: 15px;
-}
-
-.error-messages ul {
-    margin: 0;
-    padding-left: 20px;
-}
-
-.error-messages li {
-    color: #c33;
-    font-size: 14px;
-}    text-decoration: underline;
-}
-
-.error-messages {
-    margin-top: 8px;
-    padding: 10px 12px;
-    background-color: #f8d7da;
-    border: 1px solid #f5c6cb;
-    border-radius: 6px;
-    color: #721c24;
-}
-
-.error-messages ul {
-    margin: 0;
-    padding-left: 16px;
-}
-
-.error-messages li {
-    font-size: 14px;
-    margin-bottom: 4px;
-}
-
-.error-messages li:last-child {
-    margin-bottom: 0;
-}
-
+/* Responsividade */
 @media (max-width: 768px) {
     .auth-card {
         padding: 30px 20px;
