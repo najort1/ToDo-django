@@ -56,6 +56,8 @@ ROOT_URLCONF = 'ToDo_proj.urls'
 
 AUTH_USER_MODEL = 'ToDo_user_app.Usuario'
 
+LOGIN_URL = 'auth:login'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

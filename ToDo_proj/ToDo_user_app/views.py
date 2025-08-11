@@ -254,3 +254,52 @@ def admin_user_delete(request, user_id):
         return handle_json_error('Usuário não encontrado', 404)
     except Exception as e:
         return handle_json_error(f'Erro interno: {str(e)}', 500)
+
+@staff_member_required
+def admin_user_deactivate(request, user_id):
+    """
+    API para desativar usuário
+    """
+    if request.method != 'POST':
+        return handle_json_error('Método não permitido', 405)
+    
+    try:
+        user = get_object_or_404(User, id=user_id)
+        
+        if user.id == request.user.id:
+            return handle_json_error('Não é possível desativar seu próprio usuário')
+        
+        user.is_active = False
+        user.save()
+        
+        return handle_json_success(f'Usuário "{user.email}" desativado com sucesso!')
+
+    except User.DoesNotExist:
+        return handle_json_error('Usuário não encontrado', 404)
+    except Exception as e:
+        return handle_json_error(f'Erro interno: {str(e)}', 500)
+    
+@staff_member_required
+def admin_user_activate(request, user_id):
+    """
+    API para ativar usuário
+    """
+    if request.method != 'POST':
+        return handle_json_error('Método não permitido', 405)
+    
+    try:
+        user = get_object_or_404(User, id=user_id)
+        
+        if user.id == request.user.id:
+            return handle_json_error('Não é possível ativar seu próprio usuário')
+        
+        user.is_active = True
+        user.save()
+        
+        return handle_json_success(f'Usuário "{user.email}" ativado com sucesso!')
+    except User.DoesNotExist:
+        return handle_json_error('Usuário não encontrado', 404)
+    except Exception as e:
+        return handle_json_error(f'Erro interno: {str(e)}', 500)
+
+

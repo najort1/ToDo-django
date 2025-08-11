@@ -330,25 +330,6 @@
     margin: 0 15px;
 }
 
-.current-page {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    background: var(--secondary-color);
-    color: var(--text-white);
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.pagination-dots {
-    color: var(--text-secondary);
-    font-weight: bold;
-    padding: 0 4px;
-}
-
 .page-info {
     color: var(--text-secondary);
     font-size: 14px;

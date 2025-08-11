@@ -44,12 +44,12 @@
         <h2>Comece a usar o ToDo List</h2>
         <p>Adicione suas tarefas e comece a gerenciar sua vida de forma eficiente.</p>
         {%if user.is_authenticated %}
-        <a href="{% url 'tasks:dashboard' %}" class="btn">Adicionar Tarefa</a>
+        <a href="{% url 'tasks:dashboard' %}" class="btn btn-primary">Adicionar Tarefa</a>
 
         {%else%}
-        <a href="{% url 'auth:login' %}" class="btn">Login</a>
+        <a href="{% url 'auth:login' %}" class="btn btn-primary">Login</a>
 
-        <a href="{% url 'auth:register' %}" class="btn">Cadastro</a>
+        <a href="{% url 'auth:register' %}" class="btn btn-primary">Cadastro</a>
 
         {%endif%}
     </div>

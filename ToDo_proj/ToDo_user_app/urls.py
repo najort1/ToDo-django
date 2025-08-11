@@ -12,4 +12,8 @@ urlpatterns = [
     path('api/user/update-type/<int:user_id>/', views.admin_user_update_type, name='admin_user_update_type'),
     path('api/user/details/<int:user_id>/', views.admin_user_details, name='admin_user_details'),
     path('api/user/delete/<int:user_id>/', views.admin_user_delete, name='admin_user_delete'),
+    path('api/user/deactivate/<int:user_id>/', views.admin_user_deactivate, name='admin_user_deactivate'),
+    path('api/user/activate/<int:user_id>/', views.admin_user_activate, name='admin_user_activate'),
+
+
 ]

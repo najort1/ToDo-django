@@ -58,13 +58,19 @@ function initializeGrid() {
             field: 'is_active', 
             width: 100,
             sortable: true,
-            filter: true
+            filter: true,
+            cellRenderer: function(params) {
+                return `
+                    <input type="checkbox" ${params.data.is_active ? 'checked' : ''} onclick="${params.data.is_active ? `deactivateUser(${params.data.id}, '${params.data.full_name}')` : `activateUser(${params.data.id}, '${params.data.full_name}')`}" >
+                `;
+            }
         },
         { 
             headerName: 'Data Cadastro', 
             field: 'date_joined_formatted', 
             width: 140,
-            sortable: true
+            sortable: true,
+            filter: true
         },
         {
             headerName: 'Ações',
@@ -339,6 +345,56 @@ function deleteUser(userId, userName) {
     };
     
     document.getElementById('confirmModal').classList.add('show');
+}
+
+async function deactivateUser(userId, userName) {
+    try {
+        const response = await fetch(`/user/api/user/deactivate/${userId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(result.message, 'success');
+            loadUsersData();
+            loadStats();
+            loadCharts();
+        } else {
+            showToast(result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Erro ao desativar usuário:', error);
+        showToast('Erro ao desativar usuário', 'error');
+    }
+}
+
+async function activateUser(userId, userName) {
+    try {
+        const response = await fetch(`/user/api/user/activate/${userId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(result.message, 'success');
+            loadUsersData();
+            loadStats();
+            loadCharts();
+        } else {
+            showToast(result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Erro ao ativar usuário:', error);
+        showToast('Erro ao ativar usuário', 'error');
+    }
 }
 
 function closeConfirmModal() {
