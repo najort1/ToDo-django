@@ -5,11 +5,11 @@ from django.contrib.auth import get_user_model
 from django.db.models import Count
 from datetime import date
 import json
-from ToDo_app.views import handle_json_error, handle_json_success
 from ToDo_app.models import Task
 from .models import Address
 from django.views.generic import DeleteView, ListView, CreateView, UpdateView,DetailView
 from django.views import View
+from ToDo_app.mixins import JsonResponseMixin
 
 
 # Create your views here.
