@@ -5,133 +5,113 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, SecondStepRegistrationForm
 from ToDo_user_app.models import Address
-from django.views.generic import DeleteView, ListView, CreateView, UpdateView,DetailView
+from django.views.generic import DeleteView, FormView, ListView, CreateView, UpdateView,DetailView
 from django.views import View
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-def register(request):
-    if request.user.is_authenticated:
-        if not request.user.next_step:
-            return redirect('tasks:dashboard')
-        else:
-            return redirect('auth:register_step2')
+class AuthRegisterView(FormView):
+    form_class = CustomUserCreationForm
+    template_name = 'auth/register.html'
     
-    if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            user.next_step = True
-            user.save()
-            
-            auth_login(request, user)
-            messages.success(request, f'Bem-vindo(a), {user.first_name}! Agora complete seu cadastro.')
-            return redirect('auth:register_step2')
-
-        else:
-            messages.error(request, 'Por favor, corrija os erros abaixo.')
-    else:
-        form = CustomUserCreationForm()
-    
-    return render(request, 'auth/register.html', {'form': form})
-
-    
-
-def login_view(request):
-    if request.user.is_authenticated:
-        if request.user.next_step:
-            return redirect('auth:register_step2')
-        return redirect('tasks:dashboard')
-    
-    if request.method == 'POST':
-        form = CustomAuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            auth_login(request, user)
-            
-            if user.next_step:
-                messages.info(request, f'Bem-vindo de volta, {user.first_name}! Complete seu cadastro.')
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            if request.user.next_step:
                 return redirect('auth:register_step2')
-            
-            messages.success(request, f'Bem-vindo de volta, {user.first_name}!')
-            
-            # Redireciona para a página que o usuário estava tentando acessar ou para a página principal
-            next_page = request.GET.get('next', 'tasks:dashboard')
-            return redirect(next_page)
-        else:
-            messages.error(request, 'Por favor, verifique suas credenciais.')
-    else:
-        form = CustomAuthenticationForm()
+            return redirect('tasks:dashboard')
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        user = form.save()
+        user.next_step = True
+        user.save()
+        auth_login(self.request, user)
+        messages.success(self.request, f'Bem-vindo(a), {user.first_name}! Agora complete seu cadastro.')
+        return redirect("auth:register_step2")
     
-    return render(request, 'auth/login.html', {'form': form})
+    def form_invalid(self, form):
+        messages.error(self.request, 'Por favor, corrija os erros abaixo.')
+        return super().form_invalid(form)
 
+    
 
-@login_required
-def register_step2(request):
-    if not request.user.next_step:
-        messages.info(request, 'Seu cadastro já está completo!')
+class AuthLoginView(FormView):
+    form_class = CustomAuthenticationForm
+    template_name = 'auth/login.html'
+    
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            if request.user.next_step:
+                return redirect('auth:register_step2')
+            return redirect('tasks:dashboard')
+        return super().dispatch(request, *args, **kwargs)
+    
+    def form_valid(self, form):
+        user = form.get_user()
+        auth_login(self.request, user)
+        
+        if user.next_step:
+            messages.info(self.request, f'Bem-vindo de volta, {user.first_name}! Complete seu cadastro.')
+            return redirect('auth:register_step2')
+            
+        messages.success(self.request, f'Bem-vindo de volta, {user.first_name}!')
         return redirect('tasks:dashboard')
     
-    if request.method == 'POST':
-        form = SecondStepRegistrationForm(request.POST)
-        if form.is_valid():
-            user = request.user
-            user.birthdate = form.cleaned_data['birthdate']
-            user.gender = form.cleaned_data['gender']
-            user.cpf = form.cleaned_data['cpf']
-            user.phone = form.cleaned_data['phone']
-            user.next_step = False
-            user.profile_completed = True
-            user.save()
-            
-            # Cria ou atualiza o endereço
-            address, created = Address.objects.get_or_create(
-                user=user,
-                defaults={
-                    'street': form.cleaned_data['street'],
-                    'number': form.cleaned_data['number'],
-                    'complement': form.cleaned_data.get('complement', ''),
-                    'neighborhood': form.cleaned_data['neighborhood'],
-                    'city': form.cleaned_data['city'],
-                    'state': form.cleaned_data['state'],
-                    'zipcode': form.cleaned_data['zipcode'],
-                }
-            )
-            
-            if not created:
-                address.street = form.cleaned_data['street']
-                address.number = form.cleaned_data['number']
-                address.complement = form.cleaned_data.get('complement', '')
-                address.neighborhood = form.cleaned_data['neighborhood']
-                address.city = form.cleaned_data['city']
-                address.state = form.cleaned_data['state']
-                address.zipcode = form.cleaned_data['zipcode']
-                address.save()
-            
-            messages.success(request, 'Cadastro completo! Bem-vindo ao sistema.')
+    def form_invalid(self, form):
+        messages.error(self.request, 'Por favor, corrija os erros abaixo.')
+        return super().form_invalid(form)
+
+
+class AuthRegisterStep2(LoginRequiredMixin, FormView):
+    form_class = SecondStepRegistrationForm
+    template_name = 'auth/register_step2.html'
+    
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.next_step:
+            messages.info(request, 'Seu cadastro já está completo!')
             return redirect('tasks:dashboard')
-        else:
-            messages.error(request, 'Por favor, corrija os erros abaixo.')
-    else:
-        form = SecondStepRegistrationForm()
+        return super().dispatch(request, *args, **kwargs)
+    
+    def form_valid(self, form):
         
-
+        #SALVAR INFORMAÇÕES USUARIO
+        user = self.request.user
+        user.birthdate = form.cleaned_data['birthdate']
+        user.gender = form.cleaned_data['gender']
+        user.cpf = form.cleaned_data['cpf']
+        user.phone = form.cleaned_data['phone']
+        user.next_step = False
+        user.profile_completed = True
+        user.save()
+        
+        #SALVAR INFORMAÇÕES ENDEREÇO
+        address = Address(
+            user=user,
+            street=form.cleaned_data['street'],
+            number=form.cleaned_data['number'],
+            complement=form.cleaned_data.get('complement', ''),
+            neighborhood=form.cleaned_data['neighborhood'],
+            city=form.cleaned_data['city'],
+            state=form.cleaned_data['state'],
+            zipcode=form.cleaned_data['zipcode'],
+        )
+        address.save()
+        messages.success(self.request, 'Cadastro completo! Bem-vindo ao sistema.')
+        return redirect('tasks:dashboard')
     
-    return render(request, 'auth/register_step2.html', {'form': form})
+    def form_invalid(self, form):
+        messages.error(self.request, 'Por favor, corrija os erros abaixo.')
+        return super().form_invalid(form)
 
 
-def logout_view(request):
-    if request.user.is_authenticated:
-        user_name = request.user.first_name
+class LogoutView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
         auth_logout(request)
-        messages.success(request, f'Até logo, {user_name}! Você foi desconectado com sucesso.')
-    
-    return redirect('tasks:index')
+        messages.success(request, 'Você foi desconectado com sucesso.')
+        return redirect('tasks:index')
 
-def delete_account(request):
-    if request.user.is_authenticated:
+class DeleteAccountView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
         user = request.user
         user.delete()
         messages.success(request, 'Sua conta foi deletada com sucesso.')
         return redirect('tasks:index')
-    else:
-        messages.error(request, 'Você precisa estar logado para deletar sua conta.')
-        return redirect('auth:login')

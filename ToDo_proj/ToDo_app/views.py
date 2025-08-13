@@ -7,7 +7,8 @@ from .choices import Status, Months
 from django.conf import settings
 from django.core.paginator import Paginator
 from django.contrib.auth import get_user_model
-from django.db.models import Count
+from django.db.models import Count, Q
+
 from datetime import datetime, date
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.generic import DeleteView, ListView, CreateView, UpdateView,DetailView
@@ -90,7 +91,6 @@ class DashboardView(LoginRequiredMixin, ListView):
                 completed=Count('id', filter=Q(status=Status.COMPLETED)),
             )
         )
-
         
         context['status_choices'] = Status.choices
         context['current_status_filter'] = status_filter
