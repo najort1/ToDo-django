@@ -322,6 +322,34 @@ class SecondStepRegistrationForm(forms.Form):
         if len(zipcode_digits) != 8:
             raise ValidationError('CEP deve ter 8 dígitos.')
         return zipcode_digits
+    
+    def save(self, user, commit=True):
+        # Atualizar informações do usuário
+        user.birthdate = self.cleaned_data['birthdate']
+        user.gender = self.cleaned_data['gender']
+        user.cpf = self.cleaned_data['cpf']
+        user.phone = self.cleaned_data['phone']
+        user.next_step = False
+        user.profile_completed = True
+        
+        if commit:
+            user.save()
+            
+            # Criar o endereço
+            address = Address(
+                user=user,
+                street=self.cleaned_data['street'],
+                number=self.cleaned_data['number'],
+                complement=self.cleaned_data.get('complement', ''),
+                neighborhood=self.cleaned_data['neighborhood'],
+                city=self.cleaned_data['city'],
+                state=self.cleaned_data['state'],
+                zipcode=self.cleaned_data['zipcode'],
+            )
+            address.save()
+            
+        return user
+
 
 
 class CustomAuthenticationForm(AuthenticationForm):

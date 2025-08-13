@@ -4,7 +4,6 @@ from django.contrib import messages
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, SecondStepRegistrationForm
-from ToDo_user_app.models import Address
 from django.views.generic import DeleteView, FormView, ListView, CreateView, UpdateView,DetailView
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -72,29 +71,7 @@ class AuthRegisterStep2(LoginRequiredMixin, FormView):
         return super().dispatch(request, *args, **kwargs)
     
     def form_valid(self, form):
-        
-        #SALVAR INFORMAÇÕES USUARIO
-        user = self.request.user
-        user.birthdate = form.cleaned_data['birthdate']
-        user.gender = form.cleaned_data['gender']
-        user.cpf = form.cleaned_data['cpf']
-        user.phone = form.cleaned_data['phone']
-        user.next_step = False
-        user.profile_completed = True
-        user.save()
-        
-        #SALVAR INFORMAÇÕES ENDEREÇO
-        address = Address(
-            user=user,
-            street=form.cleaned_data['street'],
-            number=form.cleaned_data['number'],
-            complement=form.cleaned_data.get('complement', ''),
-            neighborhood=form.cleaned_data['neighborhood'],
-            city=form.cleaned_data['city'],
-            state=form.cleaned_data['state'],
-            zipcode=form.cleaned_data['zipcode'],
-        )
-        address.save()
+        form.save(self.request.user)
         messages.success(self.request, 'Cadastro completo! Bem-vindo ao sistema.')
         return redirect('tasks:dashboard')
     

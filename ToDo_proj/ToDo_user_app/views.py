@@ -8,10 +8,15 @@ import json
 from ToDo_app.views import handle_json_error, handle_json_success
 from ToDo_app.models import Task
 from .models import Address
+from django.views.generic import DeleteView, ListView, CreateView, UpdateView,DetailView
+from django.views import View
 
 
 # Create your views here.
 User = get_user_model()
+    
+
+
 
 @staff_member_required
 def admin_user_update_type(request, user_id):
