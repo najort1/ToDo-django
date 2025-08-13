@@ -80,16 +80,21 @@ class DashboardView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         status_filter = self.request.GET.get('status', '') #pegar filtro de status
-        stats = {
-            'total': Task.objects.filter(user=self.request.user).count(),
-            'pending': Task.objects.filter(user=self.request.user, status=Status.PENDING).count(),
-            'in_progress': Task.objects.filter(user=self.request.user, status=Status.IN_PROGRESS).count(),
-            'completed': Task.objects.filter(user=self.request.user, status=Status.COMPLETED).count(),
-        }
+        stats_query = (
+            Task.objects
+            .filter(user=self.request.user)
+            .aggregate(
+                total=Count('id'),
+                pending=Count('id', filter=Q(status=Status.PENDING)),
+                in_progress=Count('id', filter=Q(status=Status.IN_PROGRESS)),
+                completed=Count('id', filter=Q(status=Status.COMPLETED)),
+            )
+        )
+
         
         context['status_choices'] = Status.choices
         context['current_status_filter'] = status_filter
-        context['stats'] = stats
+        context['stats'] = stats_query
         
         return context
     

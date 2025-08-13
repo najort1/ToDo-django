@@ -5,7 +5,8 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm, CustomAuthenticationForm, SecondStepRegistrationForm
 from ToDo_user_app.models import Address
-
+from django.views.generic import DeleteView, ListView, CreateView, UpdateView,DetailView
+from django.views import View
 
 def register(request):
     if request.user.is_authenticated:
@@ -32,6 +33,7 @@ def register(request):
     
     return render(request, 'auth/register.html', {'form': form})
 
+    
 
 def login_view(request):
     if request.user.is_authenticated:
